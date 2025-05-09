@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { expansions } from "./details";
+import { expansions, languages, conditions, rarities } from "./details";
 type Card = {
   name: string;
   expansion: string;
@@ -8,7 +8,6 @@ type Card = {
   rarity: string;
   condition: string;
 };
-
 
 // Legge il file Excel
 const workbook = XLSX.readFile("input.xlsx");
@@ -19,8 +18,6 @@ const sheet = workbook.Sheets[sheetName];
 
 // Conversione in array di oggetti
 const data = XLSX.utils.sheet_to_json(sheet);
-console.log("Carte trovate nel file Excel:");
-console.log(data);
 
 // Costruisco un array di carte
 function buildCard(entry: any): Card | null {
@@ -62,12 +59,13 @@ function buildCardmarketUrl(card: Card) {
     return null;
   }
   const cardName = card.name.replace(/'/g, '').replace(/\s+/g, '-');
-
-  //const encodedSetName = encodeURIComponent(card.expansion);
-  //const encodedCardName = encodeURIComponent(card.name);
+  const cardLanguage = languages[card.language as keyof typeof languages];
+  const cardCondition = conditions[card.condition as keyof typeof conditions];
+  const cardRarity = rarities[card.rarity as keyof typeof rarities];
   //const cardNumber = card.number.toString().padStart(3, '0');
 
-  return `https://www.cardmarket.com/en/Pokemon/Products/Singles/${setName}/${cardName}-${card.expansion}${card.number}`;
+  // https://www.cardmarket.com/it/Pokemon/Products/Singles/EX-Hidden-Legends/Stevens-Advice-HL92?language=5&minCondition=7&isReverseHolo=N
+  return `https://www.cardmarket.com/en/Pokemon/Products/Singles/${setName}/${cardName}-${card.expansion}${card.number}?language=${cardLanguage}&minCondition=${cardCondition}&isReverseHolo=${cardRarity}`;
 }
 
 cards.forEach(card => {

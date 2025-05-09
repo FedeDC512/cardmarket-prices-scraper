@@ -1,3 +1,33 @@
+export const languages = {
+    "ENG": 1,
+    "FRE": 2,
+    "GER": 3,
+    "ESP": 4,
+    "ITA": 5,
+    "S-CN": 6,
+    "JPN": 7,
+    "POR": 8,
+    "KOR": 10,
+    "T-CN": 11,
+}
+
+export const conditions = {
+    "MT": 1,
+    "NM": 2,
+    "EX": 3,
+    "GD": 4,
+    "LP": 5,
+    "PL": 6,
+    "PO": 7,
+}
+
+export const rarities = {
+    "Normal": "N",
+    "Holo": "N",
+    "Reverse": "Y",
+    "Stamped": "Y",
+}
+
 export const expansions = new Map<string, string>([
     // Scarlet & Violet Era
     ["SVI", "Scarlet Violet"],

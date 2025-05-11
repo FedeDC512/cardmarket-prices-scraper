@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import * as cheerio from "cheerio";
 import { expansions, languages, conditions, rarities } from "./details";
 type Card = {
   name: string;
@@ -68,6 +69,33 @@ function buildCardmarketUrl(card: Card) {
   return `https://www.cardmarket.com/en/Pokemon/Products/Singles/${setName}/${cardName}-${card.expansion}${card.number}?language=${cardLanguage}&minCondition=${cardCondition}&isReverseHolo=${cardRarity}`;
 }
 
-cards.forEach(card => {
-  console.log(buildCardmarketUrl(card));
+async function fetchPrice(url: string) {
+  const html = await fetch(url).then(res => res.text())
+  const $ = cheerio.load(html)
+  // Selettore per ogni riga di articolo
+  const articleRows = $('.article-row');
+  console.log(`Fetching ${url}`);
+  if (articleRows.length === 0) {
+    console.log('Nessun articolo trovato sulla pagina.');
+    return;
+  }
+  // Itero sui primi 3 risultati
+  for (let i = 0; i < Math.min(3, articleRows.length); i++) {
+    const row = articleRows.eq(i);
+    // Cerco il prezzo dentro il div specifico
+    const priceElement = row.find('.price-container').first();
+    if (priceElement.length === 0) {
+      console.log(`Prezzo non trovato per l'articolo ${i + 1}`);
+    } else {
+      const priceText = priceElement.text().trim();
+      console.log(`Prezzo ${i + 1}: ${priceText}`);
+    }
+  }
+}
+
+cards.forEach(async card => {
+  const cardmarketUrl = buildCardmarketUrl(card);
+  if (cardmarketUrl) {
+    await fetchPrice(cardmarketUrl);
+  }
 });

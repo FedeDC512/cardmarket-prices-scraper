@@ -2,7 +2,7 @@
   "name": "cardmarket-prices-scraper",
   "module": "index.ts",
   "type": "module",
-    "scripts": {
+  "scripts": {
     "scrape": "bun run index.ts"
   },
   "devDependencies": {

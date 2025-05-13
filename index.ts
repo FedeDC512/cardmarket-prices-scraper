@@ -28,7 +28,7 @@ const data = XLSX.utils.sheet_to_json(sheet)
 // Build a card object from a row
 function buildCard(entry: any): Card | null {
   const name = entry[`Card`]?.toString().trim() || null
-  const expansion = entry[`ID`]?.toString().trim() || null
+  const expansion = entry[`Set ID`]?.toString().trim() || null
   const number = entry[`Number`]?.toString().trim() || null
   const language = entry[`Language`]?.toString().trim() || null
   const rarity = entry[`Rarity`]?.toString().trim() || null
@@ -60,7 +60,7 @@ function buildCardmarketUrl(card: Card) {
   const expansionName = expansions.get(card.expansion)
   const setName = expansionName ? expansionName.replace(/\s+/g, '-') : null
   if (!setName) {
-    console.warn(`Set not found for expansion: ${card.expansion}`)
+    console.warn(`Set not found for ${card.name} ${card.expansion} ${card.number}\n`)
     return null
   }
   const cardName = card.name.replace(/'/g, '').replace(/\s+/g, '-')
@@ -88,11 +88,11 @@ async function fetchPrice(card: Card) {
   // Selector for each article row
   const articleRows = $('.article-row')
   if (articleRows.length === 0) {
-    console.log('No articles found on the page.')
+    console.warn('No articles found on the page\n')
     return
   }
 
-  let minPrice, averagePrice: number = 0
+  let minPrice: number = 0, averagePrice: number = 0
   card.minPriceText = ``
   // Iterate over the first 3 results
   for (let i = 0; i < Math.min(3, articleRows.length); i++) {
@@ -101,22 +101,22 @@ async function fetchPrice(card: Card) {
     const priceElement = row.find('.price-container').first()
 
     if (priceElement.length === 0) {
-      console.log(`Price not found for article ${i + 1}`)
+      card.minPriceText = card.minPriceText + `Price not found for article ${i + 1}\n`
     } else {
       if (i === 0) minPrice = parsePrice(priceElement.text())
       const priceText = priceElement.text().trim()
       averagePrice += parsePrice(priceText)
       card.minPriceText = card.minPriceText + `Price ${i + 1}: ${priceText}`
-      if (i !== 2) card.minPriceText += `\n`
     }
+    if (i !== 2) card.minPriceText += `\n`
   }
   averagePrice = Math.round((averagePrice / 3) * 100) / 100
   card.minPrice = minPrice
   card.averagePrice = averagePrice
 
   console.log(card.minPriceText)
-  console.log(`Minimum price: ${card.minPrice}`)
-  console.log(`Average price: ${card.averagePrice}\n`)
+  console.log(`Minimum price: ${(card.minPrice).toFixed(2)} €`)
+  console.log(`Average price: ${(card.averagePrice).toFixed(2)} €\n`)
 
   await new Promise(resolve => setTimeout(resolve, 3000)) // Wait 3 seconds between requests
 }
@@ -125,3 +125,22 @@ for (const card of cards) {
   buildCardmarketUrl(card)
   await fetchPrice(card)
 }
+
+cards.forEach((row, index) => {
+  // Update the original data with the new values
+  row[`minPrice`] = cards[index].minPrice
+  row[`averagePrice`] = cards[index].averagePrice
+  //row[`minPriceText`] = cards[index].minPriceText
+  row[`link`] = `=HYPERLINK("${cards[index].link}", "${cards[index].name}")`
+});
+
+// Convert the updated data back to a worksheet
+const newWorksheet = XLSX.utils.json_to_sheet(cards);
+
+// Add the new worksheet to the workbook
+workbook.Sheets[sheetName] = newWorksheet;
+
+// Write the updated workbook to a new file
+XLSX.writeFile(workbook, `output.xlsx`);
+
+console.log(`Done!`)

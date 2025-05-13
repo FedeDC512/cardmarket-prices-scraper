@@ -166,4 +166,4 @@ export const expansions = new Map<string, string>([
     ["FO", "Fossil"],
     ["B2", "Base Set 2"],
     ["TR", "Team Rocket"],
-    ])
+])
